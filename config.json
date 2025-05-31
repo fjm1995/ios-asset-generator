@@ -1,0 +1,23 @@
+{
+  "apiKeys": {
+    "openai": "",
+    "elevenlabs": ""
+  },
+  "settings": {
+    "autoConnect": true,
+    "defaultAssetTypes": ["images", "svgs", "documentation"],
+    "maxRetries": 3,
+    "requestDelay": 1000
+  },
+  "generation": {
+    "imageSettings": {
+      "quality": "hd",
+      "style": "natural",
+      "sizes": ["1024x1024"]
+    },
+    "svgSettings": {
+      "optimize": true,
+      "minify": true
+    }
+  }
+}

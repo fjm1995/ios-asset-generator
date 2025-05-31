@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Asset Generator</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <div class="asset-generator">
+        <header class="generator-header">
+            <div class="header-content">
+                <h1>🎨 iOS Asset Generator</h1>
+                <p>Generate complete iOS app asset bundles from text prompts</p>
+                <div class="api-status" id="apiStatus">
+                    <span class="status-indicator">🔴</span>
+                    <span class="status-text">APIs Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="generator-workspace">
+            <!-- API Configuration Panel -->
+            <section class="config-panel" id="configPanel">
+                <h3>🔑 API Configuration</h3>
+                <div class="api-inputs">
+                    <div class="input-group">
+                        <label for="openaiKey">OpenAI API Key:</label>
+                        <input type="password" id="openaiKey" placeholder="sk-proj-..." class="api-key-input">
+                        <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('openaiKey')">👁️</button>
+                    </div>
+                    <div class="input-group">
+                        <label for="elevenlabsKey">ElevenLabs API Key (Optional):</label>
+                        <input type="password" id="elevenlabsKey" placeholder="Enter ElevenLabs key for audio generation" class="api-key-input">
+                        <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('elevenlabsKey')">👁️</button>
+                    </div>
+                    <button class="connect-apis-btn" onclick="connectAPIs()">Connect APIs</button>
+                </div>
+            </section>
+
+            <!-- Main Generation Interface -->
+            <section class="input-panel" id="inputPanel" style="display: none;">
+                <div class="prompt-section">
+                    <h3>📝 Describe Your Assets</h3>
+                    <textarea 
+                        class="prompt-input" 
+                        id="promptInput"
+                        placeholder="Example: Modern fitness tracking app, green and blue theme, minimalist design, health-focused icons, motivational sounds..."
+                        rows="4"
+                    ></textarea>
+                </div>
+
+                <div class="asset-type-section">
+                    <h3>🎯 Asset Types</h3>
+                    <div class="asset-type-grid">
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateImages" checked>
+                            <div class="card-content">
+                                <span class="card-icon">🖼️</span>
+                                <span class="card-title">App Icons</span>
+                                <span class="card-desc">All iOS sizes, light/dark modes</span>
+                            </div>
+                        </label>
+
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateSVGs" checked>
+                            <div class="card-content">
+                                <span class="card-icon">📐</span>
+                                <span class="card-title">SVG Icons</span>
+                                <span class="card-desc">Native vector graphics</span>
+                            </div>
+                        </label>
+
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateAudio">
+                            <div class="card-content">
+                                <span class="card-icon">🔊</span>
+                                <span class="card-title">Audio SFX</span>
+                                <span class="card-desc">UI sounds and effects</span>
+                            </div>
+                        </label>
+
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateAnimations">
+                            <div class="card-content">
+                                <span class="card-icon">🎬</span>
+                                <span class="card-title">Animations</span>
+                                <span class="card-desc">Lottie JSON animations</span>
+                            </div>
+                        </label>
+
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateLaunchScreens">
+                            <div class="card-content">
+                                <span class="card-icon">📱</span>
+                                <span class="card-title">Launch Screens</span>
+                                <span class="card-desc">iPhone/iPad backgrounds</span>
+                            </div>
+                        </label>
+
+                        <label class="asset-type-card">
+                            <input type="checkbox" id="generateDocumentation" checked>
+                            <div class="card-content">
+                                <span class="card-icon">📚</span>
+                                <span class="card-title">Documentation</span>
+                                <span class="card-desc">Usage guides and manifests</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="generation-controls">
+                    <button class="generate-btn" id="generateBtn" onclick="generateAssetBundle()">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Generate Asset Bundle</span>
+                    </button>
+                    <div class="cost-estimate" id="costEstimate">
+                        Estimated cost: $0.00
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress and Preview Panel -->
+            <section class="preview-panel" id="previewPanel" style="display: none;">
+                <div class="progress-section">
+                    <h3>⚡ Generation Progress</h3>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Ready to generate...</div>
+                    </div>
+                    <div class="progress-steps" id="progressSteps">
+                        <div class="step" data-step="parsing">📝 Parsing prompt</div>
+                        <div class="step" data-step="images">🖼️ Generating images</div>
+                        <div class="step" data-step="svgs">📐 Creating SVGs</div>
+                        <div class="step" data-step="audio">🔊 Generating audio</div>
+                        <div class="step" data-step="animations">🎬 Creating animations</div>
+                        <div class="step" data-step="processing">⚙️ Processing assets</div>
+                        <div class="step" data-step="packaging">📦 Packaging bundle</div>
+                    </div>
+                </div>
+
+                <div class="preview-section">
+                    <h3>👀 Asset Preview</h3>
+                    <div class="asset-preview" id="assetPreview">
+                        <div class="preview-placeholder">
+                            Generated assets will appear here...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-section" id="downloadSection" style="display: none;">
+                    <h3>📥 Download</h3>
+                    <button class="download-btn" id="downloadBtn">
+                        <span class="btn-icon">📦</span>
+                        <span class="btn-text">Download Asset Bundle</span>
+                    </button>
+                    <div class="bundle-info" id="bundleInfo">
+                        <!-- Bundle information will be populated here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="generator-footer">
+            <p>Built with OpenAI DALL-E 3, GPT-4, and ElevenLabs APIs</p>
+            <p>Generate professional iOS assets in minutes, not hours</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Generating your assets...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/config/config.js"></script>
+    <script src="js/config/config-manager.js"></script>
+    <script src="js/api/openai.js"></script>
+    <script src="js/generators/image-generator.js"></script>
+    <script src="js/generators/svg-generator.js"></script>
+    <script src="js/generators/audio-generator.js"></script>
+    <script src="js/generators/animation-generator.js"></script>
+    <script src="js/processors/image-processor.js"></script>
+    <script src="js/processors/svg-optimizer.js"></script>
+    <script src="js/processors/asset-packager.js"></script>
+    <script src="js/ui/progress.js"></script>
+    <script src="js/ui/asset-preview.js"></script>
+    <script src="js/ui/interface-manager.js"></script>
+    <script src="js/templates/svg-templates.js"></script>
+    <script src="js/templates/documentation-templates.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
