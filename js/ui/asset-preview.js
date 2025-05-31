@@ -149,9 +149,13 @@ class AssetPreview {
         if (image.urlReference) {
             img.src = image.urlReference;
             img.crossOrigin = 'anonymous';
-        } else if (image.blob) {
+        } else if (image.blob && image.blob instanceof Blob) {
             img.src = URL.createObjectURL(image.blob);
             img.onload = () => URL.revokeObjectURL(img.src);
+        } else if (image.blob && image.blob.isUrl) {
+            // Handle URL reference in blob field
+            img.src = image.blob.urlReference || image.blob.url;
+            img.crossOrigin = 'anonymous';
         }
         
         img.alt = image.filename;
@@ -313,9 +317,13 @@ class AssetPreview {
         if (image.urlReference) {
             img.src = image.urlReference;
             img.crossOrigin = 'anonymous';
-        } else if (image.blob) {
+        } else if (image.blob && image.blob instanceof Blob) {
             img.src = URL.createObjectURL(image.blob);
             img.onload = () => URL.revokeObjectURL(img.src);
+        } else if (image.blob && image.blob.isUrl) {
+            // Handle URL reference in blob field
+            img.src = image.blob.urlReference || image.blob.url;
+            img.crossOrigin = 'anonymous';
         }
         
         img.style.maxWidth = '90vw';

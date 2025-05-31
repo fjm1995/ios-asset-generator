@@ -89,9 +89,25 @@ Return only the SVG code, no explanations or markdown formatting.`;
             // Clean up the response - remove any markdown formatting
             svgContent = svgContent.replace(/```svg\n?/g, '').replace(/```\n?/g, '');
             
-            // Validate SVG
+            // Validate and fix SVG
             if (!svgContent.includes('<svg') || !svgContent.includes('</svg>')) {
-                throw new Error('Invalid SVG generated');
+                console.warn('Invalid SVG structure, attempting to extract valid SVG...');
+                // Try to extract SVG from the response
+                const svgMatch = svgContent.match(/<svg[^>]*>.*?<\/svg>/s);
+                if (svgMatch) {
+                    svgContent = svgMatch[0];
+                } else {
+                    console.error('No valid SVG found in response:', svgContent);
+                    throw new Error('No valid SVG found in response');
+                }
+            }
+            
+            // Ensure proper SVG attributes
+            if (!svgContent.includes('viewBox')) {
+                svgContent = svgContent.replace('<svg', '<svg viewBox="0 0 24 24"');
+            }
+            if (!svgContent.includes('xmlns')) {
+                svgContent = svgContent.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
             }
 
             return {
@@ -201,22 +217,33 @@ Return only the SVG code, no explanations or markdown formatting.`;
     // Utility method to download image from URL
     async downloadImage(imageUrl) {
         try {
-            // For file:// URLs, we need to handle CORS differently
-            if (window.location.protocol === 'file:') {
-                return await this.downloadImageViaProxy(imageUrl);
-            }
+            // Try direct fetch first
+            const response = await fetch(imageUrl, {
+                mode: 'cors',
+                credentials: 'omit'
+            });
             
-            const response = await fetch(imageUrl);
             if (!response.ok) {
-                throw new Error('Failed to download image');
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const blob = await response.blob();
             return blob;
         } catch (error) {
-            console.error('Image download failed, using URL reference:', error);
-            // Return URL reference instead of failing completely
-            return { url: imageUrl, isUrl: true };
+            console.warn('Direct image download failed, trying proxy method:', error.message);
+            
+            // Try canvas-based proxy method
+            try {
+                return await this.downloadImageViaProxy(imageUrl);
+            } catch (proxyError) {
+                console.error('All download methods failed, using URL reference:', proxyError.message);
+                // Return URL reference with additional metadata
+                return { 
+                    urlReference: imageUrl, 
+                    isUrl: true,
+                    note: 'Image available via direct link (CORS restricted)'
+                };
+            }
         }
     }
 
